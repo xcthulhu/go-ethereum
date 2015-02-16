@@ -15,6 +15,15 @@ Rectangle {
 	objectName: "walletView"
 	anchors.fill: parent
 
+        Label {
+            objectName: "balanceLabel"
+            visible: false
+	    onTextChanged: {
+		balance.text = text
+		menuItem.secondaryTitle = text
+	    }
+        }
+
 	function onReady() {
 		setBalance()
 	}

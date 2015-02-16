@@ -16,6 +16,11 @@ import (
 
 var chainlogger = logger.NewLogger("CHAIN")
 
+type ChainEvent struct {
+	Block *types.Block
+	Td    *big.Int
+}
+
 type StateQuery interface {
 	GetAccount(addr []byte) *state.StateObject
 }
@@ -163,7 +168,7 @@ func (bc *ChainManager) NewBlock(coinbase []byte) *types.Block {
 	var root []byte
 	parentHash := ZeroHash256
 
-	if bc.CurrentBlock != nil {
+	if bc.currentBlock != nil {
 		root = bc.currentBlock.Header().Root
 		parentHash = bc.lastBlockHash
 	}
@@ -175,6 +180,9 @@ func (bc *ChainManager) NewBlock(coinbase []byte) *types.Block {
 		ethutil.BigPow(2, 32),
 		nil,
 		"")
+	block.SetUncles(nil)
+	block.SetTransactions(nil)
+	block.SetReceipts(nil)
 
 	parent := bc.currentBlock
 	if parent != nil {
@@ -384,9 +392,10 @@ func (self *ChainManager) InsertChain(chain types.Blocks) error {
 
 				self.setTotalDifficulty(td)
 				self.insert(block)
-				self.transState = state.New(cblock.Root(), self.db) //state.New(cblock.Trie().Copy())
-			}
+				self.transState = state.New(cblock.Root(), self.db)
 
+				self.eventMux.Post(ChainEvent{block, td})
+			}
 		}
 		self.mu.Unlock()
 
