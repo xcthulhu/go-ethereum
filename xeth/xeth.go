@@ -14,8 +14,8 @@ import (
 	"github.com/ethereum/go-ethereum/ethutil"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/logger"
+	"github.com/ethereum/go-ethereum/miner"
 	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/state"
 	"github.com/ethereum/go-ethereum/whisper"
 )
 
@@ -27,14 +27,13 @@ type Backend interface {
 	ChainManager() *core.ChainManager
 	TxPool() *core.TxPool
 	PeerCount() int
-	IsMining() bool
 	IsListening() bool
 	Peers() []*p2p.Peer
 	KeyManager() *crypto.KeyManager
-	ClientIdentity() p2p.ClientIdentity
 	Db() ethutil.Database
 	EventMux() *event.TypeMux
 	Whisper() *whisper.Whisper
+	Miner() *miner.Miner
 }
 
 type XEth struct {
@@ -43,6 +42,7 @@ type XEth struct {
 	chainManager   *core.ChainManager
 	state          *State
 	whisper        *Whisper
+	miner          *miner.Miner
 }
 
 func New(eth Backend) *XEth {
@@ -51,15 +51,17 @@ func New(eth Backend) *XEth {
 		blockProcessor: eth.BlockProcessor(),
 		chainManager:   eth.ChainManager(),
 		whisper:        NewWhisper(eth.Whisper()),
+		miner:          eth.Miner(),
 	}
 	xeth.state = NewState(xeth)
 
 	return xeth
 }
 
-func (self *XEth) Backend() Backend  { return self.eth }
-func (self *XEth) State() *State     { return self.state }
-func (self *XEth) Whisper() *Whisper { return self.whisper }
+func (self *XEth) Backend() Backend    { return self.eth }
+func (self *XEth) State() *State       { return self.state }
+func (self *XEth) Whisper() *Whisper   { return self.whisper }
+func (self *XEth) Miner() *miner.Miner { return self.miner }
 
 func (self *XEth) BlockByHash(strHash string) *Block {
 	hash := fromHex(strHash)
@@ -97,7 +99,7 @@ func (self *XEth) PeerCount() int {
 }
 
 func (self *XEth) IsMining() bool {
-	return self.eth.IsMining()
+	return self.miner.Mining()
 }
 
 func (self *XEth) IsListening() bool {
@@ -192,15 +194,6 @@ func (self *XEth) FromNumber(str string) string {
 	return ethutil.BigD(fromHex(str)).String()
 }
 
-func ToMessages(messages state.Messages) *ethutil.List {
-	var msgs []Message
-	for _, m := range messages {
-		msgs = append(msgs, NewMessage(m))
-	}
-
-	return ethutil.NewList(msgs)
-}
-
 func (self *XEth) PushTx(encodedTx string) (string, error) {
 	tx := types.NewTransactionFromBytes(fromHex(encodedTx))
 	err := self.eth.TxPool().Add(tx)
@@ -226,7 +219,7 @@ func (self *XEth) Call(toStr, valueStr, gasStr, gasPriceStr, dataStr string) (st
 	var (
 		statedb = self.chainManager.TransState()
 		key     = self.eth.KeyManager().KeyPair()
-		from    = state.NewStateObject(key.Address(), self.eth.Db())
+		from    = statedb.GetOrNewStateObject(key.Address())
 		block   = self.chainManager.CurrentBlock()
 		to      = statedb.GetOrNewStateObject(fromHex(toStr))
 		data    = fromHex(dataStr)

@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/ecies"
 	"github.com/ethereum/go-ethereum/event/filter"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/obscuren/ecies"
 	"gopkg.in/fatih/set.v0"
 )
 
@@ -118,7 +118,7 @@ func (self *Whisper) GetIdentity(key *ecdsa.PublicKey) *ecdsa.PrivateKey {
 
 func (self *Whisper) Watch(opts Filter) int {
 	return self.filters.Install(filter.Generic{
-		Str1: string(crypto.FromECDSA(opts.To)),
+		Str1: string(crypto.FromECDSAPub(opts.To)),
 		Str2: string(crypto.FromECDSAPub(opts.From)),
 		Data: bytesToMap(opts.Topics),
 		Fn: func(data interface{}) {
@@ -256,6 +256,8 @@ func (self *Whisper) postEvent(envelope *Envelope) {
 func (self *Whisper) open(envelope *Envelope) (*Message, *ecdsa.PrivateKey) {
 	for _, key := range self.keys {
 		if message, err := envelope.Open(key); err == nil || (err != nil && err == ecies.ErrInvalidPublicKey) {
+			message.To = &key.PublicKey
+
 			return message, key
 		}
 	}

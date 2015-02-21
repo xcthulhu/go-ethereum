@@ -30,7 +30,7 @@ var rpchttplogger = logger.NewLogger("RPC-HTTP")
 var JSON rpc.JsonWrapper
 
 func NewRpcHttpServer(pipe *xeth.XEth, port int) (*RpcHttpServer, error) {
-	sport := fmt.Sprintf(":%d", port)
+	sport := fmt.Sprintf("127.0.0.1:%d", port)
 	l, err := net.Listen("tcp", sport)
 	if err != nil {
 		return nil, err
@@ -84,6 +84,7 @@ func (s *RpcHttpServer) Start() {
 }
 
 func (s *RpcHttpServer) apiHandler(api *rpc.EthereumApi) http.Handler {
+	var jsonrpcver string = "2.0"
 	fn := func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
@@ -91,20 +92,22 @@ func (s *RpcHttpServer) apiHandler(api *rpc.EthereumApi) http.Handler {
 
 		reqParsed, reqerr := JSON.ParseRequestBody(req)
 		if reqerr != nil {
-			JSON.Send(w, &rpc.RpcErrorResponse{JsonRpc: reqParsed.JsonRpc, ID: reqParsed.ID, Error: true, ErrorText: rpc.ErrorParseRequest})
+			jsonerr := &rpc.RpcErrorObject{-32700, rpc.ErrorParseRequest}
+			JSON.Send(w, &rpc.RpcErrorResponse{JsonRpc: jsonrpcver, ID: nil, Error: jsonerr})
 			return
 		}
 
 		var response interface{}
 		reserr := api.GetRequestReply(&reqParsed, &response)
 		if reserr != nil {
-			rpchttplogger.Errorln(reserr)
-			JSON.Send(w, &rpc.RpcErrorResponse{JsonRpc: reqParsed.JsonRpc, ID: reqParsed.ID, Error: true, ErrorText: reserr.Error()})
+			rpchttplogger.Warnln(reserr)
+			jsonerr := &rpc.RpcErrorObject{-32603, reserr.Error()}
+			JSON.Send(w, &rpc.RpcErrorResponse{JsonRpc: jsonrpcver, ID: reqParsed.ID, Error: jsonerr})
 			return
 		}
 
 		rpchttplogger.DebugDetailf("Generated response: %T %s", response, response)
-		JSON.Send(w, &rpc.RpcSuccessResponse{JsonRpc: reqParsed.JsonRpc, ID: reqParsed.ID, Error: false, Result: response})
+		JSON.Send(w, &rpc.RpcSuccessResponse{JsonRpc: jsonrpcver, ID: reqParsed.ID, Result: response})
 	}
 
 	return http.HandlerFunc(fn)

@@ -121,13 +121,11 @@ func exit(err error) {
 	os.Exit(status)
 }
 
-func StartEthereum(ethereum *eth.Ethereum, UseSeed bool) {
-	clilogger.Infof("Starting %s", ethereum.ClientIdentity())
-	err := ethereum.Start(UseSeed)
-	if err != nil {
+func StartEthereum(ethereum *eth.Ethereum) {
+	clilogger.Infoln("Starting ", ethereum.Name())
+	if err := ethereum.Start(); err != nil {
 		exit(err)
 	}
-
 	RegisterInterrupt(func(sig os.Signal) {
 		ethereum.Stop()
 		logger.Flush()
@@ -205,7 +203,7 @@ func StartWebSockets(eth *eth.Ethereum, wsPort int) {
 	clilogger.Infoln("Starting WebSockets")
 
 	var err error
-	eth.WsServer, err = rpcws.NewWebSocketServer(eth, wsPort)
+	eth.WsServer, err = rpcws.NewWebSocketServer(xeth.New(eth), wsPort)
 	if err != nil {
 		clilogger.Errorf("Could not start RPC interface (port %v): %v", wsPort, err)
 	} else {
@@ -227,7 +225,7 @@ func StartMining(ethereum *eth.Ethereum) bool {
 		go func() {
 			clilogger.Infoln("Start mining")
 			if gminer == nil {
-				gminer = miner.New(addr, ethereum)
+				gminer = miner.New(addr, ethereum, 4)
 			}
 			gminer.Start()
 		}()

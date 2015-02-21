@@ -64,7 +64,7 @@ func (self *Whisper) HasIdentity(key string) bool {
 
 func (self *Whisper) Watch(opts *Options) int {
 	filter := whisper.Filter{
-		To:     crypto.ToECDSA(fromHex(opts.To)),
+		To:     crypto.ToECDSAPub(fromHex(opts.To)),
 		From:   crypto.ToECDSAPub(fromHex(opts.From)),
 		Topics: whisper.TopicsFromString(opts.Topics...),
 	}
@@ -99,8 +99,9 @@ type Options struct {
 type WhisperMessage struct {
 	ref     *whisper.Message
 	Payload string `json:"payload"`
+	To      string `json:"to"`
 	From    string `json:"from"`
-	Sent    int64  `json:"time"`
+	Sent    int64  `json:"sent"`
 }
 
 func NewWhisperMessage(msg *whisper.Message) WhisperMessage {
@@ -108,6 +109,7 @@ func NewWhisperMessage(msg *whisper.Message) WhisperMessage {
 		ref:     msg,
 		Payload: toHex(msg.Payload),
 		From:    toHex(crypto.FromECDSAPub(msg.Recover())),
+		To:      toHex(crypto.FromECDSAPub(msg.To)),
 		Sent:    msg.Sent,
 	}
 }

@@ -1,18 +1,17 @@
+## Ethereum Go
+
+Ethereum Go Client © 2014 Jeffrey Wilcke.
+
+          | Linux   | OSX | Windows
+----------|---------|-----|--------
+develop   | [![Build+Status](http://build.ethdev.com/buildstatusimage?builder=Linux%20Go%20develop%20branch)](http://build.ethdev.com/builders/Linux%20Go%20develop%20branch/builds/-1) | [![Build+Status](http://build.ethdev.com/buildstatusimage?builder=Linux%20Go%20develop%20branch)](http://build.ethdev.com/builders/OSX%20Go%20develop%20branch/builds/-1) | N/A
+master    | [![Build+Status](http://build.ethdev.com/buildstatusimage?builder=Linux%20Go%20master%20branch)](http://build.ethdev.com/builders/Linux%20Go%20master%20branch/builds/-1) | [![Build+Status](http://build.ethdev.com/buildstatusimage?builder=OSX%20Go%20master%20branch)](http://build.ethdev.com/builders/OSX%20Go%20master%20branch/builds/-1) | N/A
+
 [![Bugs](https://badge.waffle.io/ethereum/go-ethereum.png?label=bug&title=Bugs)](https://waffle.io/ethereum/go-ethereum)
 [![Stories in Ready](https://badge.waffle.io/ethereum/go-ethereum.png?label=ready&title=Ready)](https://waffle.io/ethereum/go-ethereum)
 [![Stories in Progress](https://badge.waffle.io/ethereum/go-ethereum.svg?label=in%20progress&title=In Progress)](http://waffle.io/ethereum/go-ethereum)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ethereum/go-ethereum?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-
-Ethereum PoC-8
-========
-
-* [![Build Status](http://build.ethdev.com/buildstatusimage?builder=Linux%20Go%20master%20branch)](http://build.ethdev.com:8010/builders/Linux%20Go%20master%20branch/builds/-1) master
-* [![Build Status](http://build.ethdev.com/buildstatusimage?builder=Linux%20Go%20develop%20branch)](http://build.ethdev.com:8010/builders/Linux%20Go%20develop%20branch/builds/-1) develop
-* [![Travis-ci](https://api.travis-ci.org/ethereum/go-ethereum.svg)](https://travis-ci.org/ethereum/go-ethereum) travis-ci
-* [![Coverage Status](https://coveralls.io/repos/ethereum/go-ethereum/badge.png?branch=develop)](https://coveralls.io/r/ethereum/go-ethereum?branch=develop)
-
-Ethereum Go Client © 2014 Jeffrey Wilcke.
 
 Build
 =====
@@ -30,7 +29,8 @@ For further, detailed, build instruction please see the [Wiki](https://github.co
 Automated (dev) builds
 ======================
 
-* [[OS X](http://build.ethdev.com/builds/OSX%20Go%20develop%20branch/latest/app/)]
+* [[Docker](https://registry.hub.docker.com/u/ethereum/client-go/)]
+* [[OS X](http://build.ethdev.com/builds/OSX%20Go%20develop%20branch/Mist-OSX-latest.dmg)]
 * [Windows] Coming soon&trade;
 * [Linux] Coming soon&trade;
 
@@ -91,6 +91,8 @@ send a pull request. Commits who do not comply with the coding standards
 are ignored (use gofmt!). If you send pull requests make absolute sure that you
 commit on the `develop` branch and that you do not merge to master.
 Commits that are directly based on master are simply ignored.
+
+For dependency management, we use [godep](https://github.com/tools/godep). After installing with `go get github.com/tools/godep`, run `godep restore` to ensure that changes to other repositories do not break the build. To update a dependency version (for example, to include a new upstream fix), run `go get -u <foo/bar>` then `godep update <foo/...>`. To track a new dependency, add it to the project as normal than run `godep save ./...`. Changes to the Godeps folder should be manually verified then commited.
 
 To make life easier try [git flow](http://nvie.com/posts/a-successful-git-branching-model/) it sets
 this all up and streamlines your work flow.
