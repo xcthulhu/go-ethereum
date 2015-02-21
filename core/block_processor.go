@@ -71,6 +71,38 @@ func NewBlockProcessor(db ethutil.Database, txpool *TxPool, chainManager *ChainM
 	return sm
 }
 
+// Reset the BlockChain manager's blockprocessor to point at ourselves
+func (sm *BlockProcessor) ResetBlockChainManagerProcessor() {
+	sm.bc.SetProcessor(sm)
+}
+
+// Rexport methods from underlying BlockChain
+func (sm *BlockProcessor) CurrentBlock() *types.Block {
+	return sm.bc.CurrentBlock()
+}
+
+func (sm *BlockProcessor) InsertChain(chain types.Blocks) error {
+	return sm.bc.InsertChain(chain)
+}
+
+func (sm *BlockProcessor) GetBlockByNumber(num uint64) *types.Block {
+	return sm.bc.GetBlockByNumber(num)
+}
+
+func (sm *BlockProcessor) Td() *big.Int {
+	return sm.bc.Td()
+}
+
+func (sm *BlockProcessor) Write(block *types.Block) {
+	sm.bc.mu.Lock()
+	{
+		sm.bc.Write(block)
+	}
+	sm.bc.mu.Unlock()
+}
+
+// Process blocks
+
 func (sm *BlockProcessor) TransitionState(statedb *state.StateDB, parent, block *types.Block) (receipts types.Receipts, err error) {
 	coinbase := statedb.GetOrNewStateObject(block.Header().Coinbase)
 	coinbase.SetGasPool(CalcGasLimit(parent, block))
@@ -237,6 +269,10 @@ func (sm *BlockProcessor) ProcessWithParent(block, parent *types.Block) (td *big
 	chainlogger.Infof("processed block #%d (%x...)\n", header.Number, block.Hash()[0:4])
 
 	return td, nil
+}
+
+func (sm *BlockProcessor) SetCurrentBlock(b *types.Block) {
+	sm.bc.currentBlock = b
 }
 
 // Validates the current block. Returns an error if the block was invalid,

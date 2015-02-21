@@ -197,7 +197,7 @@ func (bc *ChainManager) Reset() {
 	}
 
 	// Prepare the genesis block
-	bc.write(bc.genesisBlock)
+	bc.Write(bc.genesisBlock)
 	bc.insert(bc.genesisBlock)
 	bc.currentBlock = bc.genesisBlock
 
@@ -225,7 +225,7 @@ func (bc *ChainManager) insert(block *types.Block) {
 	bc.lastBlockHash = block.Hash()
 }
 
-func (bc *ChainManager) write(block *types.Block) {
+func (bc *ChainManager) Write(block *types.Block) {
 	bc.writeBlockInfo(block)
 
 	encodedBlock := ethutil.Encode(block.RlpDataForStorage())
@@ -375,7 +375,7 @@ func (self *ChainManager) InsertChain(chain types.Blocks) error {
 
 		self.mu.Lock()
 		{
-			self.write(block)
+			self.Write(block)
 			cblock := self.currentBlock
 			if td.Cmp(self.td) > 0 {
 				if block.Header().Number.Cmp(new(big.Int).Add(cblock.Header().Number, ethutil.Big1)) < 0 {
