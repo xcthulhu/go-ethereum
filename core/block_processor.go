@@ -7,12 +7,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ethereum/ethash/go-ethash"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethutil"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/pow"
-	"github.com/ethereum/go-ethereum/pow/ezp"
 	"github.com/ethereum/go-ethereum/state"
 	"gopkg.in/fatih/set.v0"
 )
@@ -50,7 +50,7 @@ func NewBlockProcessor(db ethutil.Database, txpool *TxPool, chainManager *ChainM
 	sm := &BlockProcessor{
 		db:       db,
 		mem:      make(map[string]*big.Int),
-		Pow:      ezp.New(),
+		Pow:      ethash.New(chainManager),
 		bc:       chainManager,
 		eventMux: eventMux,
 		txpool:   txpool,
@@ -258,6 +258,14 @@ func (sm *BlockProcessor) ValidateBlock(block, parent *types.Block) error {
 	if len(block.Uncles()) > 1 {
 		return ValidationError("Block can only contain one uncle (contained %v)", len(block.Uncles()))
 	}
+
+	// Verify the uncles
+
+	//for _, uncludeHeader := range block.Uncles() {
+	//	if !sm.Pow.VerifyHeader(uncleHeader) {
+	//		return ValidationError("Invalid uncle header")
+	//	}
+	//}
 
 	if block.Time() < parent.Time() {
 		return ValidationError("Block timestamp not after prev block (%v - %v)", block.Header().Time, parent.Header().Time)
