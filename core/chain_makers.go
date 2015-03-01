@@ -13,10 +13,12 @@ import (
 // So we can generate blocks easily
 type FakePow struct{}
 
-func (f FakePow) Search(block pow.Block, stop <-chan struct{}) []byte { return nil }
-func (f FakePow) Verify(block pow.Block) bool                         { return true }
-func (f FakePow) GetHashrate() int64                                  { return 0 }
-func (f FakePow) Turbo(bool)                                          {}
+func (f FakePow) Search(block pow.Block, stop <-chan struct{}) ([]byte, []byte, []byte) {
+	return nil, nil, nil
+}
+func (f FakePow) Verify(block pow.Block) bool { return true }
+func (f FakePow) GetHashrate() int64          { return 0 }
+func (f FakePow) Turbo(bool)                  {}
 
 func NewBlockFromParent(addr []byte, parent *types.Block) *types.Block {
 	return newBlockFromParent(addr, parent)
