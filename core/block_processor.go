@@ -260,23 +260,6 @@ func (sm *BlockProcessor) ValidateBlock(block, parent *types.Block) error {
 		return ValidationError("Block can only contain one uncle (contained %v)", len(block.Uncles()))
 	}
 
-	// Verify the uncles
-	for _, uncleHeader := range block.Uncles() {
-		foundCommonAncestor := false
-		for _, ancestor := range sm.ChainManager().GetAncestors(block, 7) {
-			if bytes.Compare(ancestor.ParentHash(), uncleHeader.ParentHash) == 0 {
-				foundCommonAncestor = true
-				break
-			}
-		}
-		if !foundCommonAncestor {
-			return ValidationError("Uncle doesn't share a common ancestor")
-		}
-		if !sm.Pow.Verify(types.NewBlockWithHeader(uncleHeader)) {
-			return ValidationError("Invalid uncle")
-		}
-	}
-
 	if block.Time() < parent.Time() {
 		return ValidationError("Block timestamp not after prev block (%v - %v)", block.Header().Time, parent.Header().Time)
 	}
