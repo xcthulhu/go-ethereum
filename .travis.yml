@@ -11,7 +11,7 @@ install:
   # - go get golang.org/x/tools/cmd/vet 
   - if ! go get code.google.com/p/go.tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
   - go get github.com/mattn/goveralls
-  - go get github.com/ethereum/ethash
+  - go get github.com/ethereum/ethash/go-ethash
 before_script:
   # - gofmt -l -w .
   # - goimports -l -w .
